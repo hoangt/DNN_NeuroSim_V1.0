@@ -1,4 +1,4 @@
-import cPickle
+import pickle
 import numpy as np
 import os
 import tarfile
@@ -32,22 +32,24 @@ testFileName = ['cifar-10-batches-py/test_batch']
 index = 0
 for name in trainFileName:
     f = open(name,'rb')
-    dict = cPickle.load(f)
+    dict = pickle.load(f, encoding='bytes')
     f.close()
-    trainX[index:index + 10000, ...] = dict['data'].reshape([10000, 3, 32, 32]).transpose([0, 2, 3, 1])
-    trainY[np.arange(index,index+10000), dict['labels']] = 1
+    
+    trainX[index:index + 10000, ...] = dict[b'data'].reshape([10000, 3, 32, 32]).transpose([0, 2, 3, 1])
+    trainY[np.arange(index,index+10000), dict[b'labels']] = 1
     index += 10000
 
 index = 0
 for name in testFileName:
     f = open(name, 'rb')
-    dict = cPickle.load(f)
+    dict = pickle.load(f, encoding='bytes')
     f.close()
-    testX[index:index + 10000, ...] = dict['data'].reshape([10000, 3, 32, 32]).transpose([0, 2, 3, 1])
-    testY[np.arange(index,index+10000), dict['labels']] = 1
+    
+    testX[index:index + 10000, ...] = dict[b'data'].reshape([10000, 3, 32, 32]).transpose([0, 2, 3, 1])
+    testY[np.arange(index,index+10000), dict[b'labels']] = 1
     index += 10000
 
 np.savez('CIFAR10.npz',trainX=trainX,trainY=trainY,testX=testX,testY=testY,label=label)
 
-print 'dataset saved'
+print('>>> Dataset saved')
 

@@ -7,10 +7,11 @@ bitsA = Option.bitsA
 bitsG = Option.bitsG
 bitsE = Option.bitsE
 bitsR = Option.bitsR
-L2 = Option.L2
+L2    = Option.L2
 
 Graph = tf.get_default_graph()
 
+#====
 def S(bits):
   return 2.0 ** (bits - 1)
 
@@ -67,12 +68,12 @@ def G(x):
 
       norm = Q(LR * x, bitsR)
 
-      norm_sign = tf.sign(norm)
-      norm_abs = tf.abs(norm)
-      norm_int = tf.floor(norm_abs)
+      norm_sign  = tf.sign(norm)
+      norm_abs   = tf.abs(norm)
+      norm_int   = tf.floor(norm_abs)
       norm_float = norm_abs - norm_int
       rand_float = tf.random_uniform(x.get_shape(), 0, 1)
-      norm = norm_sign * ( norm_int + 0.5 * (tf.sign(norm_float - rand_float) + 1) )
+      norm       = norm_sign * ( norm_int + 0.5 * (tf.sign(norm_float - rand_float) + 1) )
 
       return norm / S(bitsG)
 

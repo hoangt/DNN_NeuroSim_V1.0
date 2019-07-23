@@ -67,11 +67,18 @@ int main(int argc, char * argv[]) {
 	gen.seed(0);
 	
 	vector<vector<double> > netStructure;
-	netStructure = getNetStructure(argv[1]);
 
+  if (argc<4) {
+    cout << "Syntax" << endl;
+    cout << "  ./main <network.csv> <weight_bitwidth> <activation_bitwidth>" << endl;
+    return 1;
+  }
+
+	netStructure = getNetStructure(argv[1]);
 	// define weight/input/memory precision from wrapper
 	param->synapseBit = atoi(argv[2]);              // precision of synapse weight
 	param->numBitInput = atoi(argv[3]);             // precision of input neural activation
+
 	if (param->cellBit > param->synapseBit) {
 		cout << "ERROR!: Memory precision is even higher than synapse precision, please modify 'cellBit' in Param.cpp!" << endl;
 		param->cellBit = param->synapseBit;
@@ -81,8 +88,10 @@ int main(int argc, char * argv[]) {
 	
 	double maxPESizeNM, maxTileSizeCM, numPENM;
 	vector<int> markNM;
+  cout << "---------------------------- ChipDesignInitialize  ------------------------------" << endl;
 	markNM = ChipDesignInitialize(inputParameter, tech, cell, netStructure, &maxPESizeNM, &maxTileSizeCM, &numPENM);		
-	
+	cout << "---------------------------- ChipDesignInitialize Done ------------------------------" << endl;
+
 	double desiredNumTileNM, desiredPESizeNM, desiredNumTileCM, desiredTileSizeCM, desiredPESizeCM;
 	int numTileRow, numTileCol;
 	
@@ -90,7 +99,8 @@ int main(int argc, char * argv[]) {
 	vector<vector<double> > utilizationEachLayer;
 	vector<vector<double> > speedUpEachLayer;
 	vector<vector<double> > tileLocaEachLayer;
-	
+
+  cout << "------------------------------ ChipFloorPlan ------------------------------" << endl;	
 	numTileEachLayer = ChipFloorPlan(true, false, false, netStructure, markNM, 
 					maxPESizeNM, maxTileSizeCM, numPENM, 
 					&desiredNumTileNM, &desiredPESizeNM, &desiredNumTileCM, &desiredTileSizeCM, &desiredPESizeCM, &numTileRow, &numTileCol);	
@@ -107,7 +117,7 @@ int main(int argc, char * argv[]) {
 					maxPESizeNM, maxTileSizeCM, numPENM,
 					&desiredNumTileNM, &desiredPESizeNM, &desiredNumTileCM, &desiredTileSizeCM, &desiredPESizeCM, &numTileRow, &numTileCol);
 	
-	cout << "------------------------------ FloorPlan --------------------------------" <<  endl;
+	//out << "------------------------------ FloorPlan --------------------------------" <<  endl;
 	cout << endl;
 	cout << "Tile and PE size are optimized to maximize memory utilization ( = memory mapped by synapse / total memory on chip)" << endl;
 	cout << endl;
@@ -150,11 +160,14 @@ int main(int argc, char * argv[]) {
 	
 	double numComputation = 0;
 	for (int i=0; i<netStructure.size(); i++) {
-		numComputation += netStructure[i][0] * netStructure[i][1] * netStructure[i][2] * netStructure[i][3] * netStructure[i][4] * netStructure[i][5];
+		numComputation += netStructure[i][0] * netStructure[i][1] * 
+                      netStructure[i][2] * netStructure[i][3] * 
+                      netStructure[i][4] * netStructure[i][5];
 	}
 	
 	ChipInitialize(inputParameter, tech, cell, netStructure, markNM, numTileEachLayer,
-					numPENM, desiredNumTileNM, desiredPESizeNM, desiredNumTileCM, desiredTileSizeCM, desiredPESizeCM, numTileRow, numTileCol);
+					       numPENM, desiredNumTileNM, desiredPESizeNM, desiredNumTileCM, desiredTileSizeCM, 
+                 desiredPESizeCM, numTileRow, numTileCol);
 					
 	double chipHeight, chipWidth, chipArea, chipAreaIC, chipAreaADC, chipAreaAccum, chipAreaOther;
 	double CMTileheight = 0;
@@ -163,11 +176,12 @@ int main(int argc, char * argv[]) {
 	double NMTilewidth = 0;
 	vector<double> chipAreaResults;
 						
-	chipAreaResults = ChipCalculateArea(inputParameter, tech, cell, desiredNumTileNM, numPENM, desiredPESizeNM, desiredNumTileCM, desiredTileSizeCM, desiredPESizeCM, numTileRow, 
-					&chipHeight, &chipWidth, &CMTileheight, &CMTilewidth, &NMTileheight, &NMTilewidth);		
-	chipArea = chipAreaResults[0];
-	chipAreaIC = chipAreaResults[1];
-	chipAreaADC = chipAreaResults[2];
+	chipAreaResults = ChipCalculateArea(inputParameter, tech, cell, desiredNumTileNM, numPENM, 
+																			desiredPESizeNM, desiredNumTileCM, desiredTileSizeCM, desiredPESizeCM, numTileRow, 
+																			&chipHeight, &chipWidth, &CMTileheight, &CMTilewidth, &NMTileheight, &NMTilewidth);		
+	chipArea      = chipAreaResults[0];
+	chipAreaIC    = chipAreaResults[1];
+	chipAreaADC   = chipAreaResults[2];
 	chipAreaAccum = chipAreaResults[3];
 	chipAreaOther = chipAreaResults[4];
 
@@ -209,9 +223,10 @@ int main(int argc, char * argv[]) {
 		cout << "-------------------- Estimation of Layer " << i+1 << " ----------------------" << endl;
 		
 		ChipCalculatePerformance(cell, i, argv[2*i+4], argv[2*i+4], argv[2*i+5], netStructure[i][6],
-					netStructure, markNM, numTileEachLayer, utilizationEachLayer, speedUpEachLayer, tileLocaEachLayer,
-					numPENM, desiredPESizeNM, desiredTileSizeCM, desiredPESizeCM, CMTileheight, CMTilewidth, NMTileheight, NMTilewidth,
-					&layerReadLatency, &layerReadDynamicEnergy, &tileLeakage, &layerbufferLatency, &layerbufferDynamicEnergy, &layericLatency, &layericDynamicEnergy,
+          netStructure, markNM, numTileEachLayer, utilizationEachLayer, speedUpEachLayer, tileLocaEachLayer,
+ 					numPENM, desiredPESizeNM, desiredTileSizeCM, desiredPESizeCM, CMTileheight, CMTilewidth, NMTileheight, NMTilewidth,
+					&layerReadLatency, &layerReadDynamicEnergy, &tileLeakage, &layerbufferLatency, 
+          &layerbufferDynamicEnergy, &layericLatency, &layericDynamicEnergy,
 					&coreLatencyADC, &coreLatencyAccum, &coreLatencyOther, &coreEnergyADC, &coreEnergyAccum, &coreEnergyOther);
 		
 		double numTileOtherLayer = 0;
@@ -225,7 +240,8 @@ int main(int argc, char * argv[]) {
 		
 		cout << "layer" << i+1 << "'s readLatency is: " << layerReadLatency*1e9 << "ns" << endl;
 		cout << "layer" << i+1 << "'s readDynamicEnergy is: " << layerReadDynamicEnergy*1e12 << "pJ" << endl;
-		cout << "layer" << i+1 << "'s leakagePower is: " << numTileEachLayer[0][i] * numTileEachLayer[1][i] * tileLeakage*1e6 << "uW" << endl;
+		cout << "layer" << i+1 << "'s leakagePower is: " << numTileEachLayer[0][i] * numTileEachLayer[1][i] * 
+                                                        tileLeakage*1e6 << "uW" << endl;
 		cout << "layer" << i+1 << "'s leakageEnergy is: " << layerLeakageEnergy*1e12 << "pJ" << endl;
 		cout << "layer" << i+1 << "'s buffer latency is: " << layerbufferLatency*1e9 << "ns" << endl;
 		cout << "layer" << i+1 << "'s buffer readDynamicEnergy is: " << layerbufferDynamicEnergy*1e12 << "pJ" << endl;
@@ -255,12 +271,12 @@ int main(int argc, char * argv[]) {
 		chipicLatency += layericLatency;
 		chipicReadDynamicEnergy += layericDynamicEnergy;
 		
-		chipLatencyADC += coreLatencyADC;
+		chipLatencyADC   += coreLatencyADC;
 		chipLatencyAccum += coreLatencyAccum;
 		chipLatencyOther += coreLatencyOther;
-		chipEnergyADC += coreEnergyADC;
-		chipEnergyAccum += coreEnergyAccum;
-		chipEnergyOther += coreEnergyOther;
+		chipEnergyADC    += coreEnergyADC;
+		chipEnergyAccum  += coreEnergyAccum;
+		chipEnergyOther  += coreEnergyOther;
 	}
 	
 	cout << "------------------------------ Summary --------------------------------" <<  endl;

@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append('./utee')
+
 import argparse
 import os
 import time
@@ -15,10 +19,10 @@ from utee import wage_quantizer
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR-X Example')
 parser.add_argument('--type', default='cifar10', help='dataset for training')
-parser.add_argument('--batch_size', type=int, default=200, help='input batch size for training (default: 64)')
-parser.add_argument('--epochs', type=int, default=257, help='number of epochs to train (default: 10)')
+parser.add_argument('--batch_size', type=int, default=256, help='input batch size for training (default: 64)')
+parser.add_argument('--epochs', type=int, default=2, help='number of epochs to train (default: 10)')
 parser.add_argument('--grad_scale', type=float, default=8, help='learning rate for wage delta calculation')
-parser.add_argument('--seed', type=int, default=117, help='random seed (default: 1)')
+parser.add_argument('--seed', type=int, default=213123, help='random seed (default: 1)')
 parser.add_argument('--log_interval', type=int, default=100,  help='how many batches to wait before logging training status')
 parser.add_argument('--test_interval', type=int, default=1,  help='how many epochs to wait before another test')
 parser.add_argument('--logdir', default='log/default', help='folder to save to the log')
